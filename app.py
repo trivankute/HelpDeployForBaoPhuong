@@ -1,13 +1,13 @@
 import glob
 import pickle
 import faiss
+import random
 import numpy as np
 import cv2
 from PIL import Image
 from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
-import os
 import torch.nn as nn
 from collections import defaultdict
 import tensorflow as tf
@@ -15,7 +15,7 @@ from tensorflow.keras.applications import ResNet101V2
 from tensorflow.keras.applications.resnet_v2 import preprocess_input
 from tensorflow.keras.preprocessing import image
 import streamlit as st
-
+import time
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
@@ -77,11 +77,11 @@ def extract_features(img_array):
     features = model.predict(img_array)
     return features
 
-with open('C:/Users/Tri Van/OneDrive/Máy tính/HelpBP/đồ án/image_arrays.pkl', 'rb') as f:
+with open('./image_arrays.pkl', 'rb') as f:
     loaded_image_arrays = pickle.load(f)
 
 # Load saved feature embeddings
-saved_feature_embeddings_dir = "C:/Users/Tri Van/OneDrive/Máy tính/HelpBP/đồ án/"
+saved_feature_embeddings_dir = "./"
 feature_embeddings = np.load(os.path.join(saved_feature_embeddings_dir, 'feature_embeddings.npy'))
 
 with open(os.path.join(saved_feature_embeddings_dir, 'image_paths.pkl'), 'rb') as f:
@@ -162,31 +162,57 @@ def predict_seam_class(test_img):
 def main():
     st.title("Seam Class Prediction")
 
-    # uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
-
-    # if uploaded_file is not None:
-    #     # Display the uploaded image
-    #     image = np.array(bytearray(uploaded_file.read()), dtype=np.uint8)
-    #     image = cv2.imdecode(image, 1)
-    #     st.image(image, caption="Uploaded Image", use_column_width=True)
-
-    #     # Predict seam class
-    #     result = predict_seam_class(image)
-
-    #     st.success(f"The predicted seam class is: {result}")
+    with st.container():
+        on = st.toggle('Camera')
     
-    uploaded_files = st.file_uploader("Choose an image...", accept_multiple_files=True, type=["jpg", "png", "jpeg"])
-    for uploaded_file in uploaded_files:
+    if on:
+        uploaded_file = st.camera_input("Take a picture")
         if uploaded_file is not None:
+            start_time = time.time()
+
             # Display the uploaded image
             image = np.array(bytearray(uploaded_file.read()), dtype=np.uint8)
             image = cv2.imdecode(image, 1)
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+            st.image(image, caption="Seam Image", use_column_width=True)
 
             # Predict seam class
-            result = predict_seam_class(image)
+            for percent_complete in range(100):
+                time.sleep(0.01)
+                my_bar.progress(percent_complete + 1, text=progress_text)
+            time.sleep(1)
+            my_bar.empty()
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
             st.success(f"The predicted seam class is: {result}")
+            st.info(f"Cost time: {elapsed_time:.2f} seconds")
+
+    else:
+        uploaded_files = st.file_uploader("Choose an image...", accept_multiple_files=True, type=["jpg", "png", "jpeg"])
+        for uploaded_file in uploaded_files:
+            if uploaded_file is not None:
+                start_time = time.time()
+                # Display the uploaded image
+                image = np.array(bytearray(uploaded_file.read()), dtype=np.uint8)
+                image = cv2.imdecode(image, 1)
+                st.image(image, caption="Seam Image", use_column_width=True)
+
+                # Predict seam class
+                result = predict_seam_class(image)
+                
+                progress_text = "Operation in progress. Please wait."
+                my_bar = st.progress(0, text=progress_text)
+
+                for percent_complete in range(100):
+                    time.sleep(0.01)
+                    my_bar.progress(percent_complete + 1, text=progress_text)
+                time.sleep(1)
+                my_bar.empty()
+
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                st.success(f"The predicted seam class is: {result}")
+                st.info(f"Cost time: {elapsed_time:.2f} seconds")
 
 if __name__ == "__main__":
     main()
