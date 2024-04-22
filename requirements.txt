@@ -1,9 +1,8 @@
 faiss_cpu==1.8.0
 matplotlib==3.5.2
 numpy==1.26.4
-opencv_contrib_python==4.5.5.64
-opencv_python==4.8.1.78
 Pillow==10.1.0
 streamlit==1.33.0
 tensorflow==2.16.1
 torch==2.1.0
+opencv-python-headless
