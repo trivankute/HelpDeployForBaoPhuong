@@ -19,13 +19,19 @@ import time
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-backbone = torch.hub.load('pytorch/vision:v0.10.0', 'vgg19', pretrained=True)
+# Load the model (only executed once!)
+# NOTE: Don't set ttl or max_entries in this case
+@st.cache_resource
+def load_model():
+	  return torch.hub.load('pytorch/vision:v0.10.0', 'vgg19', pretrained=True)
+
+backbone = load_model()
 modules = list(list(backbone.children())[0].children())
 
 class FeatureExtractor(nn.Module):
     def __init__(self, model_name='vgg19'):
         super().__init__()
-        self.backbone = torch.hub.load('pytorch/vision:v0.10.0', model_name, pretrained=True)
+        self.backbone = load_model()
         modules1 = list(list(self.backbone.children())[0].children())
         modules2 = list(self.backbone.children())[1]
         modules3 = list(list(self.backbone.children())[2].children())
