@@ -6,4 +6,5 @@ streamlit
 tensorflow
 torch
 torchvision
+torchaudio
 opencv-python-headless
