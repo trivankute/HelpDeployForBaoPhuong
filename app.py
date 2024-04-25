@@ -156,15 +156,6 @@ def predict_seam_class(test_img):
 
     return closest_image_path
 
-# image_path = r'C:\Users\PhatNguyen\Downloads\IMG_0810.jpg'
-# result = predict_seam_class(image_path)
-# result
-
-# if __name__ == "__main__":
-#     image_path = r'C:\Users\PhatNguyen\Downloads\IMG_0810.jpg'
-#     result = predict_seam_class(image_path)
-#     print(result)
-
 def main():
     st.title("Seam Class Prediction")
 
@@ -182,6 +173,10 @@ def main():
             st.image(image, caption="Seam Image", use_column_width=True)
 
             # Predict seam class
+            result = predict_seam_class(image)
+            
+            progress_text = "Operation in progress. Please wait."
+            my_bar = st.progress(0, text=progress_text)
             for percent_complete in range(100):
                 time.sleep(0.01)
                 my_bar.progress(percent_complete + 1, text=progress_text)
