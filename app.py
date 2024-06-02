@@ -1,4 +1,4 @@
-sph9500import glob
+import glob
 import pickle
 import faiss
 import random
