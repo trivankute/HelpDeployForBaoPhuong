@@ -20,7 +20,7 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 # Links to files
-linkToPreparedData="./basicRunData"
+linkToPreparedData="./"
 linkToImagesTest="../Test/Level"
 
 # Load the model (only executed once!)
