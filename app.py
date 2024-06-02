@@ -86,8 +86,14 @@ def extract_features(img_array):
     features = model.predict(img_array)
     return features
 
-with open(linkToPreparedData + 'image_arrays.pkl', 'rb') as f:
-    loaded_image_arrays = pickle.load(f)
+# Load saved image arrays
+with open(os.path.join(linkToPreparedData, 'image_arrays1.pkl'), 'rb') as f:
+    loaded_image_arrays1 = pickle.load(f)
+
+with open(os.path.join(linkToPreparedData, 'image_arrays2.pkl'), 'rb') as f:
+    loaded_image_arrays2 = pickle.load(f)
+
+loaded_image_arrays = loaded_image_arrays1 + loaded_image_arrays2
 
 # Load saved feature embeddings
 feature_embeddings = np.load(os.path.join(linkToPreparedData, 'feature_embeddings.npy'))
