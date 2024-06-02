@@ -8,3 +8,8 @@ torch
 torchvision
 torchaudio
 opencv-python-headless
+ssl
+urllib3
+requests
+pandas
+io
