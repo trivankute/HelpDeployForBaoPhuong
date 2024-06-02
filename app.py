@@ -23,6 +23,42 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 linkToPreparedData="./basicRunData"
 linkToImagesTest="../Test/Level"
 
+
+import ssl
+import urllib3
+import requests
+import pandas as pd
+import io
+class CustomHttpAdapter(requests.adapters.HTTPAdapter):
+    # "Transport adapter" that allows us to use custom ssl_context.
+
+    def __init__(self, ssl_context=None, **kwargs):
+        self.ssl_context = ssl_context
+        super().__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = urllib3.poolmanager.PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_context=self.ssl_context,
+        )
+
+
+def get_legacy_session():
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+    session = requests.session()
+    session.mount("https://", CustomHttpAdapter(ctx))
+    return session
+
+
+URL = "https://geoportalgasolineras.es/resources/files/preciosEESS_es.xls"
+res = get_legacy_session().get(URL)
+df = pd.read_excel(io.BytesIO(res.content), skiprows=3, engine="xlrd")
+
+st.write(df)
+
 # Load the model (only executed once!)
 # NOTE: Don't set ttl or max_entries in this case
 @st.cache_resource
@@ -86,7 +122,7 @@ def extract_features(img_array):
     features = model.predict(img_array)
     return features
 
-with open(os.path.join(linkToPreparedData + 'image_arrays.pkl'), 'rb') as f:
+with open(linkToPreparedData + 'image_arrays.pkl', 'rb') as f:
     loaded_image_arrays = pickle.load(f)
 
 # Load saved feature embeddings
