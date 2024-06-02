@@ -19,6 +19,10 @@ import time
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
+# Links to files
+linkToPreparedData="../basicRunData"
+linkToImagesTest="../Test/Level"
+
 # Load the model (only executed once!)
 # NOTE: Don't set ttl or max_entries in this case
 @st.cache_resource
@@ -52,7 +56,6 @@ feature_extractor.eval()
 model = ResNet101V2(weights='imagenet', include_top=False, pooling='avg')
 
 def compare_two_images(img1, img2):
-
     # Extract features
     features1 = extract_features(img1)
     features2 = extract_features(img2)
@@ -83,14 +86,13 @@ def extract_features(img_array):
     features = model.predict(img_array)
     return features
 
-with open('./image_arrays.pkl', 'rb') as f:
+with open(os.path.join(linkToPreparedData, 'image_arrays.pkl'), 'rb') as f:
     loaded_image_arrays = pickle.load(f)
 
 # Load saved feature embeddings
-saved_feature_embeddings_dir = "./"
-feature_embeddings = np.load(os.path.join(saved_feature_embeddings_dir, 'feature_embeddings.npy'))
+feature_embeddings = np.load(os.path.join(linkToPreparedData, 'feature_embeddings.npy'))
 
-with open(os.path.join(saved_feature_embeddings_dir, 'image_paths.pkl'), 'rb') as f:
+with open(os.path.join(linkToPreparedData, 'image_paths.pkl'), 'rb') as f:
     image_paths = pickle.load(f)
 
 # build the index, d=size of vectors
@@ -109,13 +111,10 @@ index.add(feature_embeddings)
 
 topk = 3
 def predict_seam_class(test_img):
-    
     # Convert test_img into embeding
-    # test_img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
     test_img = np.concatenate([test_img[...,:-1][..., ::-1], test_img[..., -1][..., None]], axis=-1)
     test_img = cv2.cvtColor(test_img, cv2.COLOR_RGB2GRAY)
     test_img = cv2.resize(test_img, dsize=(256, 256))
-    # test_img = img.convert("RGB")
     test_img_tensor = torch.tensor(test_img, dtype=torch.float32)
     test_img_tensor = test_img_tensor / 255.
     test_img_tensor = torch.cat([test_img_tensor[None], test_img_tensor[None], test_img_tensor[None]], dim=0)
@@ -128,12 +127,13 @@ def predict_seam_class(test_img):
     # Search for top 3
     D_list, idx_list_for_image = index.search(test_img_embedding_np, topk)
     closest_image_path = None
-    top_five_paths = []
     scores = defaultdict(float)
+
+    # preprocess the test image
+    img1 = preprocess_image(test_img)
 
     for i in range(len(idx_list_for_image[0])):
         image_path2 = image_paths[idx_list_for_image[0][i]]
-        img1 = preprocess_image(test_img)
         img2 = loaded_image_arrays[idx_list_for_image[0][i]]
 
         # Compare the images
@@ -158,7 +158,7 @@ def predict_seam_class(test_img):
 
 def main():
     st.title("Seam Class Prediction")
-
+    
     with st.container():
         on = st.toggle('Camera')
     
